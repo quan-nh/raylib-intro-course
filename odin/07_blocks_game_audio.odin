@@ -90,6 +90,16 @@ main :: proc() {
 
 	font := rl.LoadFont("lessons/resources/setback.png")
 
+	rl.InitAudioDevice()
+
+	fxStart := rl.LoadSound("lessons/resources/start.wav")
+	fxBounce := rl.LoadSound("lessons/resources/bounce.wav")
+	fxExplode := rl.LoadSound("lessons/resources/explosion.wav")
+
+	music := rl.LoadMusicStream("lessons/resources/blockshock.mod")
+
+	rl.PlayMusicStream(music) // Start music streaming
+
 	// Game required variables
 	screen := GameScreen.LOGO // Current game screen state
 
@@ -161,7 +171,10 @@ main :: proc() {
 				framesCounter += 1
 
 				// LESSON 03: Inputs management (keyboard, mouse)
-				if rl.IsKeyPressed(.ENTER) do screen = .GAMEPLAY
+				if rl.IsKeyPressed(.ENTER) {
+					screen = .GAMEPLAY
+					rl.PlaySound(fxStart)
+				}
 
 			}
 		case .GAMEPLAY:
@@ -204,6 +217,7 @@ main :: proc() {
 								(ball.position.x - (player.position.x + player.size.x / 2)) /
 								player.size.x *
 								5.0
+							rl.PlaySound(fxBounce)
 						}
 
 						// Collision logic: ball vs bricks
@@ -217,6 +231,7 @@ main :: proc() {
 										   )) {
 									bricks[j][i].active = false
 									ball.speed.y *= -1
+									rl.PlaySound(fxExplode)
 
 									break
 								}
@@ -267,6 +282,8 @@ main :: proc() {
 			}
 		}
 		//----------------------------------------------------------------------------------
+
+		rl.UpdateMusicStream(music)
 
 		// Draw
 		//----------------------------------------------------------------------------------
@@ -383,7 +400,16 @@ main :: proc() {
 	rl.UnloadTexture(texBall)
 	rl.UnloadTexture(texPaddle)
 	rl.UnloadTexture(texBrick)
+
 	rl.UnloadFont(font)
+
+	rl.UnloadSound(fxStart)
+	rl.UnloadSound(fxBounce)
+	rl.UnloadSound(fxExplode)
+
+	rl.UnloadMusicStream(music)
+
+	rl.CloseAudioDevice()
 
 	rl.CloseWindow() // Close window and OpenGL context
 	//--------------------------------------------------------------------------------------
